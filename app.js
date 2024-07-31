@@ -5,6 +5,9 @@ const cors = require("cors");
 const hpp = require("hpp");
 const xss = require("xss-clean");
 
+// api routes
+const userRouter = require("./routes/userRoutes");
+
 const globalErrHandler = require("./controllers/errorControllers");
 const AppError = require("./utils/api/appError");
 
@@ -33,6 +36,8 @@ app.use(xss());
 
 // Prevent parameter pollution
 app.use(hpp());
+
+app.use("/api/users", userRouter);
 
 // handle undefined Routes
 app.use("*", (req, res, next) => {
