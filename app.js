@@ -4,7 +4,7 @@ const helmet = require("helmet");
 const cors = require("cors");
 const hpp = require("hpp");
 const xss = require("xss-clean");
-
+require('dotenv').config();
 const globalErrHandler = require("./controllers/errorControllers");
 const AppError = require("./utils/api/appError");
 
