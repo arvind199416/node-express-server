@@ -5,7 +5,7 @@ const rateLimit = require("express-rate-limit");
 const cors = require("cors");
 const hpp = require("hpp");
 const xss = require("xss-clean");
-
+const chalk = require("cli-color");
 // api routes
 const userRouter = require("./routes/userRoutes");
 
@@ -16,7 +16,14 @@ const app = express();
 
 const db = require("./database/connectdb");
 
-db.connect();
+// connected to the database
+db.connect((err, client) => {
+  if (err) {
+    console.log(chalk.red("unable to connect to the database!"));
+  }
+
+  console.log(chalk.green("database connected"), client);
+});
 
 // Allow Cross-Origin requests
 app.use(cors());
@@ -54,3 +61,4 @@ app.use("*", (req, res, next) => {
 app.use(globalErrHandler);
 
 module.exports = app;
+exports.chalk = chalk;
