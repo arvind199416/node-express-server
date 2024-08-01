@@ -1,5 +1,5 @@
 const app = require("./app");
-require("./database/database")
+// require("./database/database")
 require("dotenv").config();
 require("./controllers/testController")
 

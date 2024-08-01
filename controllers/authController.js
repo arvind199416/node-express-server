@@ -1,5 +1,13 @@
 const jwt = require("jsonwebtoken");
 const AppError = require("../utils/api/appError");
+const POOL = require("pg").Pool;
+const client = new POOL({
+  user: process.env.USER,
+  host: process.env.HOST,
+  password: process.env.PASSWORD,
+  port: process.env.DB_PORT,
+  database: process.env.DB_NAME,
+});
 
 const createToken = (id) => {
   return jwt.sign(
@@ -13,21 +21,72 @@ const createToken = (id) => {
   );
 };
 
+// exports.login = async (req, res, next) => {
+//   // try {
+//   //   const { email, password } = req.body;
+//   //   const checkUserQuery = "SELECT * FROM users WHERE email = $1";
+//   //   const result = await client.query(query, [email]);
+//   //   client.connect((err, client, release) => {
+//   //     if (err) {
+//   //       return console.error(err);
+//   //     }
+//   //     client.query(checkUserQuery, (err, result) => {
+//   //       release();
+//   //     });
+//   //   });
+
+//   //   // 1) check if email and password exist
+//   //   if (!email || !password) {
+//   //     return next(
+//   //       new AppError(404, "fail", "Please provide email or password"),
+//   //       req,
+//   //       res,
+//   //       next
+//   //     );
+//   //   }
+//   // } catch (error) {
+//   //   next(error);
+//   // }
+//   try {
+//     const query = 'SELECT * FROM users WHERE email = $1';
+//     const result = await client.query(query, [email]);
+
+//     // result.rows will contain the rows returned by the query
+//     return result.rows; // Array of user objects matching the email
+//   } catch (error) {
+//     console.error('Error executing query:', error);
+//     throw error;
+//   }
+
+// };
 exports.login = async (req, res, next) => {
   try {
+    const query = 'SELECT * FROM users WHERE email = $1';
     const { email, password } = req.body;
-
-    // 1) check if email and password exist
+    console.log(req.body)
+    // Check if email and password are provided
     if (!email || !password) {
-      return next(
-        new AppError(404, "fail", "Please provide email or password"),
-        req,
-        res,
-        next
-      );
+
+      return next(new AppError(404, "fail", "Please provide email and password"));
     }
+
+    // Query the database for the user with the provided email
+    const result = await client.query(query, [email]);
+
+    // Check if the user exists
+    if (result.rows.length === 0) {
+      return next(new AppError(404, "fail", "User not found"));
+    }
+
+    // Assuming you verify the password here (not shown in the provided code)
+    // If password matches, create a JWT token
+    const token = createToken(result.rows[0].id);
+
+    // Send token as a response
+    res.status(200).json({ status: "success", token });
+
   } catch (error) {
-    next(error);
+    next(error); // Pass any errors to the error handler middleware
   }
 };
 

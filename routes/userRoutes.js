@@ -6,10 +6,10 @@ const userController = require("../controllers/userController");
 
 router.post("/login", authController.login);
 router.post("/signup", authController.signup);
-
+router.post("/", userController.createUser);
 // Protect all routes after this middleware
-router.use(authController.protect);
+// router.use(authController.protect);
 
-router.get("/", userController.getProfile);
+// router.get("/", userController.getProfile);
 
 module.exports = router;
