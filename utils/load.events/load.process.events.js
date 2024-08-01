@@ -5,15 +5,11 @@ module.exports = () => {
       if (_err) {
         return _err;
       }
-      console.log('====================================');
-      console.log(files);
-      console.log('====================================');
+     
       files.forEach((file) => {
         if (!file.endsWith(".js")) return;
         const event = require(`${process.cwd()}/process.events/${file}`);
-        console.log('====================================');
-        console.log(event);
-        console.log('====================================');
+        
         let eventName = file.split(".")[0];
 
         process.on(eventName, event.bind());
