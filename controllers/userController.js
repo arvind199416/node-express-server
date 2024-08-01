@@ -1,12 +1,6 @@
+const pool = require("../database/connectdb");
 const AppError = require("../utils/api/appError");
-const POOL = require("pg").Pool;
-const client = new POOL({
-  user: process.env.USER,
-  host: process.env.HOST,
-  password: process.env.PASSWORD,
-  port: process.env.DB_PORT,
-  database: process.env.DB_NAME,
-});
+
 
 exports.getProfile = async (req, res, next) => {
   try {
@@ -32,7 +26,7 @@ exports.createUser = async (req, res, next) => {
     const values = [id, name, email, address, password,active];
     console.log(req.body);
 
-    const result = await client.query(query, values);
+    const result = await pool.query(query, values);
 
    
     res.status(201).json({ status: "success", data: result.rows[0] });

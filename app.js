@@ -1,11 +1,13 @@
+require("dotenv").config();
 const express = require("express");
 const rateLimit = require("express-rate-limit");
-const helmet = require("helmet");
+// const helmet = require("helmet");
 const cors = require("cors");
 const hpp = require("hpp");
 const xss = require("xss-clean");
 require('dotenv').config();
 
+const chalk = require("cli-color");
 // api routes
 const userRouter = require("./routes/userRoutes");
 
@@ -13,6 +15,17 @@ const globalErrHandler = require("./controllers/errorControllers");
 const AppError = require("./utils/api/appError");
 
 const app = express();
+
+const db = require("./database/connectdb");
+
+// connected to the database
+db.connect((err, client) => {
+  if (err) {
+    console.log(chalk.red("unable to connect to the database!"));
+  }
+
+  console.log(chalk.green("database connected"));
+});
 
 // Allow Cross-Origin requests
 app.use(cors());
@@ -23,6 +36,7 @@ const limiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   message: "Too Many Request from this IP, please try again in an hour",
 });
+
 app.use("/api", limiter);
 
 // Body parser, reading data from body into req.body
@@ -49,3 +63,4 @@ app.use("*", (req, res, next) => {
 app.use(globalErrHandler);
 
 module.exports = app;
+exports.chalk = chalk;

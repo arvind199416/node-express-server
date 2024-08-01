@@ -1,13 +1,6 @@
 const jwt = require("jsonwebtoken");
 const AppError = require("../utils/api/appError");
-const POOL = require("pg").Pool;
-const client = new POOL({
-  user: process.env.USER,
-  host: process.env.HOST,
-  password: process.env.PASSWORD,
-  port: process.env.DB_PORT,
-  database: process.env.DB_NAME,
-});
+const pool = require("../database/connectdb");
 
 const createToken = (id) => {
   return jwt.sign(
@@ -61,7 +54,7 @@ const createToken = (id) => {
 // };
 exports.login = async (req, res, next) => {
   try {
-    const query = 'SELECT * FROM users WHERE email = $1';
+    const query = 'SELECT * FROM users WHERE email = $1 AND password = $2';
     const { email, password } = req.body;
     console.log(req.body)
     // Check if email and password are provided
@@ -71,7 +64,7 @@ exports.login = async (req, res, next) => {
     }
 
     // Query the database for the user with the provided email
-    const result = await client.query(query, [email]);
+    const result = await pool.query(query, [email,password]);
 
     // Check if the user exists
     if (result.rows.length === 0) {

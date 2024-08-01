@@ -1,3 +1,5 @@
+const userScheme = require("../models/userModel");
+
 const POOL = require("pg").Pool;
 
 const client = new POOL({
@@ -7,16 +9,7 @@ const client = new POOL({
   port: process.env.DB_PORT,
   database: process.env.DB_NAME,
 });
-const createTableQuery = `
-CREATE TABLE IF NOT EXISTS Users (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(100),
-  email VARCHAR(100) UNIQUE NOT NULL,
-  address VARCHAR(255),
-  password VARCHAR(255) NOT NULL,
-  active BOOLEAN DEFAULT TRUE
-);
-  `;
+
 client.connect((err, client, release) => {
   if (err) {
     return console.error(err);
