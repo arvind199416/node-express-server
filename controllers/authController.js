@@ -1,5 +1,9 @@
 const jwt = require("jsonwebtoken");
 const AppError = require("../utils/api/appError");
+const pool = require("../database/connectdb");
+
+const User = require("../models/userModel");
+const { insertData, createTable } = require("../utils/functions");
 
 const createToken = (id) => {
   return jwt.sign(
@@ -16,7 +20,9 @@ const createToken = (id) => {
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-
+    if (!pool) {
+      return next(new AppError(500, "fail", "database not connected"));
+    }
     // 1) check if email and password exist
     if (!email || !password) {
       return next(
@@ -26,6 +32,29 @@ exports.login = async (req, res, next) => {
         next
       );
     }
+
+    const isUserExist = await pool.query(`SELECT EXISTS (
+    SELECT FROM information_schema.tables 
+    WHERE  table_schema = 'dark'
+    AND    table_name   = 'users'
+    );`);
+
+    if (!isUserExist.rows[0].exists) {
+      return next(
+        new AppError(404, "fail", "user does not exist."),
+        req,
+        res,
+        next
+      );
+    }
+
+    const token = createToken(8);
+
+    res.status(200).json({
+      status: "success",
+      code: 200,
+      token,
+    });
   } catch (error) {
     next(error);
   }
@@ -33,23 +62,72 @@ exports.login = async (req, res, next) => {
 
 exports.signup = async (req, res, next) => {
   try {
-    //   const user = await User.create({
-    //     name: req.body.name,
-    //     email: req.body.email,
-    //     password: req.body.password,
-    //     passwordConfirm: req.body.passwordConfirm,
-    //     role: req.body.role,
-    //   });
+    const email = req.body.email;
+    if (User.email.validate(email) && req.body.password) {
+      const body = Object.values(req.body);
 
-    const token = createToken(2);
+      const validateField = `SELECT EXISTS (
+          SELECT 1
+          FROM users
+          WHERE email = ${email}
+      )`;
 
-    //   user.password = undefined;
-
-    res.status(201).json({
-      status: "success",
-      token,
-      data: {},
-    });
+      const validateTable = await pool.query(`SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE  table_schema = 'dark'
+        AND    table_name   = 'users'
+        );`);
+      console.log(validateTable.rows[0].exists);
+      if (!validateTable.rows[0].exists) {
+        try {
+          createTable(pool, User, "users");
+          // insertData(pool, ["email", "password"], body, "users").then(
+          //   (data) => {
+          //     console.log("line 82 ", data);
+          //     res.status(201).json({
+          //       status: "success",
+          //       code: 201,
+          //       message: `user created with ${email}.`,
+          //     });
+          //   }
+          // );
+          res.status(201).json({
+                  status: "success",
+                  code: 201,
+                  message: `user created with ${email}.`,
+                });
+        } catch (error) {
+          next(error);
+        }
+      } else {
+        const isEmailExits = pool.query(validateField);
+        if (isEmailExits) {
+          res.status(200).json({
+            status: "success",
+            code: 200,
+            message: "user with this email already exists.",
+          });
+          console.log(isEmailExits);
+        } else {
+          insertData(pool, ["email", "password"], body, "users").then(
+            (data) => {
+              console.log("line 82 ", data);
+              res.status(201).json({
+                status: "success",
+                code: 201,
+                message: `user created with ${email}.`,
+              });
+            }
+          );
+        }
+      }
+    } else {
+      res.status(400).json({
+        status: "failed",
+        code: 400,
+        message: "request body is missing one or more parameter",
+      });
+    }
   } catch (err) {
     next(err);
   }

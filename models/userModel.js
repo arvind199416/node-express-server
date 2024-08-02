@@ -3,28 +3,28 @@ const bcrypt = require("bcryptjs");
 
 const userScheme = {
   name: {
-    type: String,
+    type: "TEXT",
     required: [true, "Please fill your name"],
   },
   email: {
-    type: String,
+    type: "TEXT",
     required: [true, "Please fill your email"],
     unique: true,
     lowercase: true,
-    validate: [validator.isEmail, " Please provide a valid email"],
+    validate: (email) => validator.isEmail(email),
   },
   address: {
-    type: String,
+    type: "TEXT",
     trim: true,
   },
   password: {
-    type: String,
+    type: "TEXT",
     required: [true, "Please fill your password"],
     minLength: 6,
     select: false,
   },
   passwordConfirm: {
-    type: String,
+    type: "TEXT",
     required: [true, "Please fill your password confirm"],
     validate: {
       validator: function (el) {
@@ -35,13 +35,15 @@ const userScheme = {
     },
   },
   role: {
-    type: String,
+    type: "TEXT",
     enum: ["admin", "user"],
     default: "user",
   },
   active: {
-    type: Boolean,
+    type: "BOOLEAN",
     default: true,
     select: false,
   },
 };
+
+module.exports = userScheme;
